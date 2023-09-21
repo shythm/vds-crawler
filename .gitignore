@@ -1,2 +1,3 @@
 *.csv
 !/holidays/*.csv
+__pycache__/
