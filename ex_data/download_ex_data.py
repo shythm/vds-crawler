@@ -4,25 +4,29 @@ import os
 import sys
 import gzip
 import pandas as pd
+import time
 
 def download_ex_data(file_name: str, fields: dict) -> bytes:
-    print(f"start crawling {file_name}")
+    start_time = time.time()
 
-    print(f" -> POST ...")
+    print(f"start crawling {file_name}", flush=True)
+
+    print(f" -> POST ...", flush=True)
     multipart = MultipartEncoder(fields=fields)
     headers = {
         'Content-Type': multipart.content_type,
     }
     res = requests.post('http://data.ex.co.kr/portal/fdwn/log', headers=headers, data=multipart)
 
-    print(f" -> decompessing ...")
+    print(f" -> decompessing ...", flush=True)
     data = gzip.decompress(res.content)
 
-    print(f" -> saving ...")
+    print(f" -> saving ...", flush=True)
     with open(file_name, 'wb') as f:
         f.write(data)
 
-    print(f"complete to download {file_name}")
+    print(f"elapsed time: {time.time() - start_time} seconds", flush=True)
+    print(f"complete to download {file_name}", flush=True)
 
 def get_ex_data_path(date, parent_path):
     if not os.path.isdir(parent_path):
@@ -49,7 +53,7 @@ if __name__ == '__main__':
     # get date list from start date to end date using datetime module
     dates = pd.date_range(start_date, end_date).strftime('%Y%m%d').tolist()
 
-    print(f"start downloading ex data from {start_date} to {end_date}")
+    print(f"start downloading ex data from {start_date} to {end_date}", flush=True)
 
     for date in dates:
         vds_data_post_fields = {
@@ -96,4 +100,4 @@ if __name__ == '__main__':
         vds_point_file_name = get_ex_data_path(date, parent_path)['vds_point_path']
         download_ex_data(vds_point_file_name, vds_point_post_fields)
 
-    print(f"end downloading ex data from {start_date} to {end_date}")
+    print(f"end downloading ex data from {start_date} to {end_date}", flush=True)
