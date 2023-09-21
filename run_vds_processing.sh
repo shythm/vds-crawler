@@ -9,5 +9,4 @@
 ##
 ## This script runs vds_multiproessing.py using slurm
 
-conda activate vds
-python vds_multiprocessing.py 20190101 20190131
+python vds_multiprocessing.py 20190101 20190131 holidays/holidays_2019.csv ex_data/201901 output
