@@ -5,94 +5,7 @@ import gzip
 import pandas as pd
 import numpy as np
 from datetime import datetime, time
-
-# post mutlipart/form-data to get 5min data from ex data portal
-def download_ex_data(file_name: str, fields: dict, verbose: bool) -> bytes:
-    if os.path.isfile(file_name):
-        if verbose:
-            print(f"already {file_name} has been downloaded.")
-    else:
-        if verbose:
-            print(f"start crawling {file_name}")
-
-        if verbose:
-            print(f"POST {file_name} ...")
-        multipart = MultipartEncoder(fields=fields)
-        headers = {
-            'Content-Type': multipart.content_type,
-        }
-        res = requests.post('http://data.ex.co.kr/portal/fdwn/log', headers=headers, data=multipart)
-
-        if verbose:
-            print(f"decompessing {file_name} ...")
-        data = gzip.decompress(res.content)
-
-        if verbose:
-            print(f"saving {file_name} ...")
-        with open(file_name, 'wb') as f:
-            f.write(data)
-
-        if verbose:
-            print(f"complete to download {file_name}")
-
-# download original files from ex data portal
-def prepare_original_files(date: str, verbose: bool = False) -> dict:
-    parent_path = 'temp'
-
-    # create parent_path if not exists
-    if not os.path.isdir(parent_path):
-        os.mkdir(parent_path)
-
-    vds_data_post_fields = {
-        'dataSupplyDate': f'{date}',
-        'collectType': 'VDS',
-        'dataType': '16',
-        'collectCycle': '04',
-        'supplyCycle': '01',
-        'outFileName': f'vds_data_{date}.gz',
-    }
-    vds_data_file_name = f"{parent_path}/vds_data_{date}.csv"
-    download_ex_data(vds_data_file_name, vds_data_post_fields, verbose)
-
-    con_zone_post_fields = {
-        'dataSupplyDate': f'{date}',
-        'collectType': 'ETC',
-        'dataType': '78',
-        'collectCycle': '04',
-        'supplyCycle': '01',
-        'outFileName': f'con_zone_{date}.gz',
-    }
-    con_zone_file_name = f"{parent_path}/con_zone_{date}.csv"
-    download_ex_data(con_zone_file_name, con_zone_post_fields, verbose)
-
-    vds_zone_post_fields = {
-        'dataSupplyDate': f'{date}',
-        'collectType': 'ETC',
-        'dataType': '79',
-        'collectCycle': '04',
-        'supplyCycle': '01',
-        'outFileName': f'vds_zone_{date}.gz',
-    }
-    vds_zone_file_name = f"{parent_path}/vds_zone_{date}.csv"
-    download_ex_data(vds_zone_file_name, vds_zone_post_fields, verbose)
-
-    vds_point_post_fields = {
-        'dataSupplyDate': f'{date}',
-        'collectType': 'VDS',
-        'dataType': '84',
-        'collectCycle': '04',
-        'supplyCycle': '01',
-        'outFileName': f'vds_point_{date}.gz',
-    }
-    vds_point_file_name = f"{parent_path}/vds_point_{date}.csv"
-    download_ex_data(vds_point_file_name, vds_point_post_fields, verbose)
-
-    return {
-        'vds_data_path': vds_data_file_name,
-        'con_zone_path': con_zone_file_name,
-        'vds_zone_path': vds_zone_file_name,
-        'vds_point_path': vds_point_file_name,
-    }
+from ex_data.download_ex_data import get_ex_data_path
 
 # extract delimiter of csv file using header
 def extract_delimiter(path) -> str:
@@ -143,13 +56,16 @@ def aggregate_vds_data(grouped_df: pd.DataFrame) -> pd.Series:
     })
 
 # process vds data
-def process_vds(date: str, holiday_code: int = 0, verbose: bool = False) -> None:
-    print(f"start processing vds data of {date}")
-
-    # download files from ex data portal
-    if verbose:
-        print(f"downloading original files of {date} ...")
-    paths = prepare_original_files(date, verbose=verbose)
+def process_vds(
+        date: str, 
+        holiday_code: int, 
+        data_path: str,
+        output_path: str,
+        verbose: bool = False
+        ) -> None:
+    
+    print(f"start processing vds data of {date}", flush=True)
+    paths = get_ex_data_path(date, data_path)
 
     # load original files
     if verbose:
@@ -305,9 +221,9 @@ def process_vds(date: str, holiday_code: int = 0, verbose: bool = False) -> None
 
     # save vds_data_output to csv file
     vds_data_output.to_csv(
-        f"output/vds_data_5min_{date}.csv",
+        output_path,
         index=False,
         encoding='euc-kr',
     )
 
-    print(f"complete to process vds data of {date} !")
+    print(f"complete to process vds data of {date} !", flush=True)
