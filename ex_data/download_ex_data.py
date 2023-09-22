@@ -56,6 +56,8 @@ if __name__ == '__main__':
     print(f"start downloading ex data from {start_date} to {end_date}", flush=True)
 
     for date in dates:
+        print(f"** {date} **", flush=True)
+
         vds_data_post_fields = {
             'dataSupplyDate': f'{date}',
             'collectType': 'VDS',
