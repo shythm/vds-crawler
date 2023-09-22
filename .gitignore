@@ -1,3 +1,5 @@
 *.csv
 !/holidays/*.csv
 __pycache__/
+slurm/
+*.out
