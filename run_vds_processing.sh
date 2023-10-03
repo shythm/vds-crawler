@@ -1,12 +1,10 @@
 #!/bin/bash
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=56
+#SBATCH --ntasks-per-node=32
 #SBATCH --partition=cpu2
-##
 #SBATCH --job-name=vds_processing
-#SBATCH --output=vds_processing.%j.out
-#SBATCH --error=vds_processing.%j.err
-##
-## This script runs vds_multiproessing.py using slurm
+#SBATCH --output="slurm/vds_processing.%j.out"
+#SBATCH --error="slurm/vds_processing.%j.err"
 
-python vds_multiprocessing.py 20190101 20190131 holidays/holidays_2019.csv ex_data/201901 output
+# This script runs vds_multiproessing.py using slurm
+python -u vds_multiprocessing.py 20201201 20201231 holidays/holidays_2020.csv ex_data/202012 output/202012
